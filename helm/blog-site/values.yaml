@@ -1,0 +1,5 @@
+image:
+  repository: malaynew07/shadow-blog
+  pullPolicy: Always
+
+replicaCount: 1

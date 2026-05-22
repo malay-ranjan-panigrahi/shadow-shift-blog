@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: blog-prod
+  namespace: prod
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: blog
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: blog
+        version: v1
+    spec:
+      containers:
+        - name: blog
+          image: "{{ .Values.image.repository }}:v1"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: blog-svc
+  namespace: prod
+spec:
+  selector:
+    app: blog
+    version: v1
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
