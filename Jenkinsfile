@@ -41,7 +41,7 @@ pipeline {
                 withCredentials([usernamePassword(credentialsId: env.GIT_CREDENTIALS_ID, usernameVariable: 'GIT_USER', passwordVariable: 'GIT_PAT')]) {
                     sh '''
                         # 1. Clone the new GitOps repository into a temporary folder
-                        git clone https://${GIT_USER}:${GIT_PAT}@github.com/malaynew07/shadow-shift-gitops.git gitops-repo
+                        git clone https://${GIT_USER}:${GIT_PAT}@github.com/malay-ranjan-panigrahi/shadow-shift-gitops.git gitops-repo
                         
                         # 2. Enter the folder and configure Git for Jenkins
                         cd gitops-repo
