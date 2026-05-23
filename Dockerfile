@@ -7,7 +7,7 @@ ARG VERSION=v1
 RUN rm -rf /usr/share/nginx/html/*
 
 # Copy our custom HTML into the container
-COPY ${VERSION}/index.html /usr/share/nginx/html/index.html
+COPY app/${VERSION}/index.html /usr/share/nginx/html/index.html
 
 EXPOSE 80
 
