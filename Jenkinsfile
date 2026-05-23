@@ -38,16 +38,19 @@ pipeline {
         stage('Update Helm Manifests (GitOps Handoff)') {
             steps {
                 echo "✍️ Cloning GitOps repo and updating values.yaml..."
-                withCredentials([usernamePassword(credentialsId: env.GIT_CREDENTIALS_ID, usernameVariable: 'GIT_USER', passwordVariable: 'GIT_PAT')]) {
+                withCredentials([usernamePassword(credentialsId: env.GIT_CREDENTIALS_ID, usernameVariable: 'GIT_USER', passwordVariable: 'GIT_PAT')])  {  
                     sh '''
-                        # 1. Clone the new GitOps repository into a temporary folder
+                        # 0. Wipe out any folder left over from previous failed builds
+                        rm -rf gitops-repo
+                       
+                        # 1. Clone the new GitOps repository
                         git clone https://${GIT_USER}:${GIT_PAT}@github.com/malay-ranjan-panigrahi/shadow-shift-gitops.git gitops-repo
                         
                         # 2. Enter the folder and configure Git for Jenkins
                         cd gitops-repo
                         git config user.email "jenkins@shadow-shift.local"
                         git config user.name "Jenkins CI"
-                        
+
                         # 3. Update the image tag in the values.yaml file using sed
                         sed -i "s/tag: .*/tag: ${IMAGE_TAG}/g" helm/blog-site/values.yaml
                         
