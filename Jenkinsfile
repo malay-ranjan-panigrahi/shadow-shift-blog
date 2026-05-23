@@ -2,7 +2,6 @@ pipeline {
     agent any
 
     environment {
-       
         DOCKER_CREDENTIALS_ID = 'docker-hub-creds'
         GIT_CREDENTIALS_ID    = 'github-creds'
         
@@ -60,6 +59,45 @@ pipeline {
                         git push origin main
                     '''
                 }
+            }
+        }
+
+        stage('Automated AI Health Check & Auto-Rollback') {
+            steps {
+                echo "⏳ Waiting 45 seconds for ArgoCD to spin up the new pods..."
+                sleep 45
+
+                echo "🌐 Firing synthetic traffic to test the new deployment..."
+                sh '''
+                    # Hit the real endpoint and a fake one to generate log data
+                    curl -s http://localhost:80 > /dev/null || true
+                    curl -s http://localhost:80/hidden-test-path > /dev/null || true
+                '''
+
+                echo "🧠 Triggering AI SRE Agent..."
+                sh '''
+                    # 1. Dynamically pull logs from the new pods
+                    kubectl logs -l app=blog-site -n default --tail=100 > nginx_access.log
+                    
+                    # 2. Run the AI analysis and capture the output
+                    REPORT=$(python3 ai_sre_agent.py)
+                    echo "$REPORT"
+                    
+                    # 3. The Automated Decision Engine
+                    if echo "$REPORT" | grep -q "\\[FAIL\\]"; then
+                        echo "🚨 AI DETECTED ANOMALIES. INITIATING AUTOMATED ROLLBACK!"
+                        
+                        cd gitops-repo
+                        # Automatically revert the last Git commit
+                        git revert --no-edit HEAD
+                        git push origin main
+                        
+                        echo "⏪ GitOps rollback triggered. Failing pipeline."
+                        exit 1
+                    else
+                        echo "✅ AI approved the release. Deployment stabilized."
+                    fi
+                '''
             }
         }
     }
