@@ -76,14 +76,19 @@ pipeline {
 
                 echo "🧠 Triggering AI SRE Agent..."
                 sh '''
-                    # 1. Dynamically pull logs from the new pods
-                    kubectl logs -l app=blog-site -n default --tail=100 > nginx_access.log
+                    # 1. Create a Python virtual environment for Jenkins and install dependencies
+                    python3 -m venv ai-env
+                    . ai-env/bin/activate
+                    pip install ollama
                     
-                    # 2. Run the AI analysis and capture the output
+                    # 2. Dynamically pull logs directly from the Production Deployment
+                    kubectl logs deploy/blog-prod -n default --tail=100 > nginx_access.log
+                    
+                    # 3. Run the AI analysis and capture the output
                     REPORT=$(python3 ai_sre_agent.py)
                     echo "$REPORT"
                     
-                    # 3. The Automated Decision Engine
+                    # 4. The Automated Decision Engine
                     if echo "$REPORT" | grep -q "\\[FAIL\\]"; then
                         echo "🚨 AI DETECTED ANOMALIES. INITIATING AUTOMATED ROLLBACK!"
                         
